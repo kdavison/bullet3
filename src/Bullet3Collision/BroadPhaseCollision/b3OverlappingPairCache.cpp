@@ -113,7 +113,7 @@ b3BroadphasePair* b3HashedOverlappingPairCache::findPair(int proxy0, int proxy1)
 	int proxyId1 = proxy0;
 	int proxyId2 = proxy1;
 
-	/*if (proxyId1 > proxyId2) 
+	/*if (proxyId1 > proxyId2)
 		b3Swap(proxyId1, proxyId2);*/
 
 	int hash = static_cast<int>(getHash(static_cast<unsigned int>(proxyId1), static_cast<unsigned int>(proxyId2)) & (m_overlappingPairArray.capacity() - 1));
@@ -169,7 +169,7 @@ void b3HashedOverlappingPairCache::growTables()
 			const b3BroadphasePair& pair = m_overlappingPairArray[i];
 			int proxyId1 = pair.x;
 			int proxyId2 = pair.y;
-			/*if (proxyId1 > proxyId2) 
+			/*if (proxyId1 > proxyId2)
 				b3Swap(proxyId1, proxyId2);*/
 			int hashValue = static_cast<int>(getHash(static_cast<unsigned int>(proxyId1), static_cast<unsigned int>(proxyId2)) & (m_overlappingPairArray.capacity() - 1));  // New hash value with new mask
 			m_next[i] = m_hashTable[hashValue];
@@ -185,7 +185,7 @@ b3BroadphasePair* b3HashedOverlappingPairCache::internalAddPair(int proxy0, int 
 	int proxyId1 = proxy0;
 	int proxyId2 = proxy1;
 
-	/*if (proxyId1 > proxyId2) 
+	/*if (proxyId1 > proxyId2)
 		b3Swap(proxyId1, proxyId2);*/
 
 	int hash = static_cast<int>(getHash(static_cast<unsigned int>(proxyId1), static_cast<unsigned int>(proxyId2)) & (m_overlappingPairArray.capacity() - 1));  // New hash value with new mask
@@ -206,7 +206,8 @@ b3BroadphasePair* b3HashedOverlappingPairCache::internalAddPair(int proxy0, int 
 		}*/
 	int count = m_overlappingPairArray.size();
 	int oldCapacity = m_overlappingPairArray.capacity();
-	pair = &m_overlappingPairArray.expandNonInitializing();
+	m_overlappingPairArray.reserve(oldCapacity * 2);
+	pair = &m_overlappingPairArray.emplace_back();
 
 	//this is where we add an actual pair, so also call the 'ghost'
 	//	if (m_ghostPairCallback)
@@ -242,7 +243,7 @@ void* b3HashedOverlappingPairCache::removeOverlappingPair(int proxy0, int proxy1
 	int proxyId1 = proxy0;
 	int proxyId2 = proxy1;
 
-	/*if (proxyId1 > proxyId2) 
+	/*if (proxyId1 > proxyId2)
 		b3Swap(proxyId1, proxyId2);*/
 
 	int hash = static_cast<int>(getHash(static_cast<unsigned int>(proxyId1), static_cast<unsigned int>(proxyId2)) & (m_overlappingPairArray.capacity() - 1));
@@ -374,7 +375,8 @@ void b3HashedOverlappingPairCache::sortOverlappingPairs(b3Dispatcher* dispatcher
 		m_next[i] = B3_NULL_PAIR;
 	}
 
-	tmpPairs.quickSort(b3BroadphasePairSortPredicate());
+	//tmpPairs.quickSort(b3BroadphasePairSortPredicate());
+	std::sort(tmpPairs.begin(), tmpPairs.end(), b3BroadphasePairSortPredicate());
 
 	for (i = 0; i < tmpPairs.size(); i++)
 	{
@@ -388,7 +390,8 @@ void* b3SortedOverlappingPairCache::removeOverlappingPair(int proxy0, int proxy1
 	{
 		b3BroadphasePair findPair = b3MakeBroadphasePair(proxy0, proxy1);
 
-		int findIndex = m_overlappingPairArray.findLinearSearch(findPair);
+		//int findIndex = m_overlappingPairArray.findLinearSearch(findPair);
+		int findIndex = LinearSearch(m_overlappingPairArray, findPair);
 		if (findIndex < m_overlappingPairArray.size())
 		{
 			b3g_overlappingPairs--;
@@ -398,8 +401,9 @@ void* b3SortedOverlappingPairCache::removeOverlappingPair(int proxy0, int proxy1
 			//if (m_ghostPairCallback)
 			//	m_ghostPairCallback->removeOverlappingPair(proxy0, proxy1,dispatcher);
 
-			m_overlappingPairArray.swap(findIndex, m_overlappingPairArray.capacity() - 1);
-			m_overlappingPairArray.pop_back();
+			//m_overlappingPairArray.swap(findIndex, m_overlappingPairArray.capacity() - 1);
+			//m_overlappingPairArray.pop_back();
+			m_overlappingPairArray.erase(m_overlappingPairArray.begin() + findIndex);
 			return 0;
 		}
 	}
@@ -415,7 +419,8 @@ b3BroadphasePair* b3SortedOverlappingPairCache::addOverlappingPair(int proxy0, i
 	if (!needsBroadphaseCollision(proxy0, proxy1))
 		return 0;
 
-	b3BroadphasePair* pair = &m_overlappingPairArray.expandNonInitializing();
+	m_overlappingPairArray.reserve(m_overlappingPairArray.size() * 2);
+	b3BroadphasePair* pair = &m_overlappingPairArray.emplace_back();
 	*pair = b3MakeBroadphasePair(proxy0, proxy1);
 
 	b3g_overlappingPairs++;
@@ -436,7 +441,7 @@ b3BroadphasePair* b3SortedOverlappingPairCache::findPair(int proxy0, int proxy1)
 		return 0;
 
 	b3BroadphasePair tmpPair = b3MakeBroadphasePair(proxy0, proxy1);
-	int findIndex = m_overlappingPairArray.findLinearSearch(tmpPair);
+	int findIndex = LinearSearch(m_overlappingPairArray, tmpPair);
 
 	if (findIndex < m_overlappingPairArray.size())
 	{
@@ -461,8 +466,9 @@ void b3SortedOverlappingPairCache::processAllOverlappingPairs(b3OverlapCallback*
 			cleanOverlappingPair(*pair, dispatcher);
 			pair->x = -1;
 			pair->y = -1;
-			m_overlappingPairArray.swap(i, m_overlappingPairArray.size() - 1);
-			m_overlappingPairArray.pop_back();
+			//m_overlappingPairArray.swap(i, m_overlappingPairArray.size() - 1);
+			//m_overlappingPairArray.pop_back();
+			m_overlappingPairArray.erase(m_overlappingPairArray.begin() + i);
 			b3g_overlappingPairs--;
 		}
 		else

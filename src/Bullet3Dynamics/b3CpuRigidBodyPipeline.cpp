@@ -411,7 +411,7 @@ int b3CpuRigidBodyPipeline::registerPhysicsInstance(float mass, const float* pos
 
 	if (collidableIndex >= 0)
 	{
-		b3Aabb& worldAabb = m_data->m_aabbWorldSpace.expand();
+		b3Aabb& worldAabb = m_data->m_aabbWorldSpace.emplace_back();
 
 		b3Aabb localAabb = m_data->m_np->getLocalSpaceAabb(collidableIndex);
 		b3Vector3 localAabbMin = b3MakeVector3(localAabb.m_min[0], localAabb.m_min[1], localAabb.m_min[2]);

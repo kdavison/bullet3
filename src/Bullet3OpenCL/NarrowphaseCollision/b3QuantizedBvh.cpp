@@ -4,8 +4,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -52,7 +52,8 @@ void b3QuantizedBvh::buildInternal()
 	///if the entire tree is small then subtree size, we need to create a header info for the tree
 	if (m_useQuantization && !m_SubtreeHeaders.size())
 	{
-		b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.expand();
+		//b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.expand();
+		b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.emplace_back();
 		subtree.setAabbFromQuantizeNode(m_quantizedContiguousNodes[0]);
 		subtree.m_rootNodeIndex = 0;
 		subtree.m_subtreeSize = m_quantizedContiguousNodes[0].isLeafNode() ? 1 : m_quantizedContiguousNodes[0].getEscapeIndex();
@@ -189,7 +190,8 @@ void b3QuantizedBvh::updateSubtreeHeaders(int leftChildNodexIndex, int rightChil
 
 	if (leftSubTreeSizeInBytes <= MAX_SUBTREE_SIZE_IN_BYTES)
 	{
-		b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.expand();
+		//b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.expand();
+		b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.emplace_back();
 		subtree.setAabbFromQuantizeNode(leftChildNode);
 		subtree.m_rootNodeIndex = leftChildNodexIndex;
 		subtree.m_subtreeSize = leftSubTreeSize;
@@ -197,7 +199,8 @@ void b3QuantizedBvh::updateSubtreeHeaders(int leftChildNodexIndex, int rightChil
 
 	if (rightSubTreeSizeInBytes <= MAX_SUBTREE_SIZE_IN_BYTES)
 	{
-		b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.expand();
+		//b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.expand();
+		b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.emplace_back();
 		subtree.setAabbFromQuantizeNode(rightChildNode);
 		subtree.m_rootNodeIndex = rightChildNodexIndex;
 		subtree.m_subtreeSize = rightSubTreeSize;
@@ -809,6 +812,11 @@ unsigned b3QuantizedBvh::calculateSerializeBufferSize() const
 	return baseSize + m_curNodeIndex * sizeof(b3OptimizedBvhNode);
 }
 
+// @KD
+// this is writing all this data to some memory passed in from o_alignedDataBuffer
+// but like in a really terrible, difficult to maintain not-portable-ish kinda way
+// I think I basically need to rewrite this to use a memory stream of some kind
+// TODO: make this actually work
 bool b3QuantizedBvh::serialize(void* o_alignedDataBuffer, unsigned /*i_dataBufferSize */, bool i_swapEndian) const
 {
 	b3Assert(m_subtreeHeaderCount == m_SubtreeHeaders.size());
@@ -861,7 +869,7 @@ bool b3QuantizedBvh::serialize(void* o_alignedDataBuffer, unsigned /*i_dataBuffe
 
 	if (m_useQuantization)
 	{
-		targetBvh->m_quantizedContiguousNodes.initializeFromBuffer(nodeData, nodeCount, nodeCount);
+		//targetBvh->m_quantizedContiguousNodes.initializeFromBuffer(nodeData, nodeCount, nodeCount);
 
 		if (i_swapEndian)
 		{
@@ -898,11 +906,11 @@ bool b3QuantizedBvh::serialize(void* o_alignedDataBuffer, unsigned /*i_dataBuffe
 		// this clears the pointer in the member variable it doesn't really do anything to the data
 		// it does call the destructor on the contained objects, but they are all classes with no destructor defined
 		// so the memory (which is not freed) is left alone
-		targetBvh->m_quantizedContiguousNodes.initializeFromBuffer(NULL, 0, 0);
+		//targetBvh->m_quantizedContiguousNodes.initializeFromBuffer(NULL, 0, 0);
 	}
 	else
 	{
-		targetBvh->m_contiguousNodes.initializeFromBuffer(nodeData, nodeCount, nodeCount);
+		//targetBvh->m_contiguousNodes.initializeFromBuffer(nodeData, nodeCount, nodeCount);
 
 		if (i_swapEndian)
 		{
@@ -933,14 +941,14 @@ bool b3QuantizedBvh::serialize(void* o_alignedDataBuffer, unsigned /*i_dataBuffe
 		// this clears the pointer in the member variable it doesn't really do anything to the data
 		// it does call the destructor on the contained objects, but they are all classes with no destructor defined
 		// so the memory (which is not freed) is left alone
-		targetBvh->m_contiguousNodes.initializeFromBuffer(NULL, 0, 0);
+		//targetBvh->m_contiguousNodes.initializeFromBuffer(NULL, 0, 0);
 	}
 
 	sizeToAdd = 0;  //(BVH_ALIGNMENT-((unsigned)nodeData & BVH_ALIGNMENT_MASK))&BVH_ALIGNMENT_MASK;
 	nodeData += sizeToAdd;
 
 	// Now serialize the subtree headers
-	targetBvh->m_SubtreeHeaders.initializeFromBuffer(nodeData, m_subtreeHeaderCount, m_subtreeHeaderCount);
+	//targetBvh->m_SubtreeHeaders.initializeFromBuffer(nodeData, m_subtreeHeaderCount, m_subtreeHeaderCount);
 	if (i_swapEndian)
 	{
 		for (int i = 0; i < m_subtreeHeaderCount; i++)
@@ -983,7 +991,7 @@ bool b3QuantizedBvh::serialize(void* o_alignedDataBuffer, unsigned /*i_dataBuffe
 	// this clears the pointer in the member variable it doesn't really do anything to the data
 	// it does call the destructor on the contained objects, but they are all classes with no destructor defined
 	// so the memory (which is not freed) is left alone
-	targetBvh->m_SubtreeHeaders.initializeFromBuffer(NULL, 0, 0);
+	//targetBvh->m_SubtreeHeaders.initializeFromBuffer(NULL, 0, 0);
 
 	// this wipes the virtual function table pointer at the start of the buffer for the class
 	*((void**)o_alignedDataBuffer) = NULL;

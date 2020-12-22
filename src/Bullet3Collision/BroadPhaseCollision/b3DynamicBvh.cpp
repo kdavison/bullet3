@@ -622,11 +622,16 @@ void b3DynamicBvh::write(IWriter* iwriter) const
 	{
 		const b3DbvtNode* n = nodes.nodes[i];
 		int p = -1;
-		if (n->parent) p = nodes.nodes.findLinearSearch(n->parent);
+		if (n->parent) {
+			//p = nodes.nodes.findLinearSearch(n->parent);
+			p = LinearSearch(nodes.nodes, (const b3DbvtNode*)n->parent);
+		}
 		if (n->isinternal())
 		{
-			const int c0 = nodes.nodes.findLinearSearch(n->childs[0]);
-			const int c1 = nodes.nodes.findLinearSearch(n->childs[1]);
+			//const int c0 = nodes.nodes.findLinearSearch(n->childs[0]);
+			//const int c1 = nodes.nodes.findLinearSearch(n->childs[1]);
+			const int c0 = LinearSearch(nodes.nodes, (const b3DbvtNode*)n->childs[0]);
+			const int c1 = LinearSearch(nodes.nodes, (const b3DbvtNode*)n->childs[1]);
 			iwriter->WriteNode(n, i, p, c0, c1);
 		}
 		else

@@ -19,6 +19,7 @@ bool useShadowMap = true;  // true;//false;//true;
 
 
 #include <stdio.h>
+#include <algorithm>
 
 struct caster2
 {
@@ -254,7 +255,7 @@ struct InternalDataRenderer : public GLInstanceRendererInternalData
 							m_updateShadowMap(true)
 
 	{
-		
+
 		m_lightPos = b3MakeVector3(-50, 30, 40);
 		m_lightSpecularIntensity.setValue(1, 1, 1);
 		m_shadowmapIntensity = 0.3;
@@ -1309,7 +1310,7 @@ void GLInstancingRenderer::InitShaders()
 	useShadow_cameraPositionIn = glGetUniformLocation(useShadowMapInstancingShader, "cameraPositionIn");
 	useShadow_materialShininessIn = glGetUniformLocation(useShadowMapInstancingShader, "materialShininessIn");
 	useShadow_shadowmapIntensityIn = glGetUniformLocation(useShadowMapInstancingShader, "shadowmapIntensityIn");
-	
+
 
 	createShadowMapInstancingShader = gltLoadShaderPair(createShadowMapInstancingVertexShader, createShadowMapInstancingFragmentShader);
 	glLinkProgram(createShadowMapInstancingShader);
@@ -1911,7 +1912,7 @@ void GLInstancingRenderer::drawPoints(const float* positions, const float color[
 			break;
 		}
 	}
-	
+
 	glBindVertexArray(0);
 	glPointSize(1);
 	glUseProgram(0);
@@ -2105,7 +2106,7 @@ void GLInstancingRenderer::renderSceneInternal(int orgRenderMode)
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
 
-	
+
 
 	{
 		B3_PROFILE("init");
@@ -2327,7 +2328,7 @@ void GLInstancingRenderer::renderSceneInternal(int orgRenderMode)
 		}
 		TransparentDistanceSortPredicate sorter;
 
-		transparentInstances.quickSort(sorter);
+		std::sort(transparentInstances.begin(), transparentInstances.end(), sorter);
 	}
 
 	//two passes: first for opaque instances, second for transparent ones.
@@ -2375,9 +2376,9 @@ void GLInstancingRenderer::renderSceneInternal(int orgRenderMode)
 						else
 						{
 							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-							
+
 						}
-						
+
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 					}
 					else
@@ -2394,7 +2395,7 @@ void GLInstancingRenderer::renderSceneInternal(int orgRenderMode)
 
 				//disable lazy evaluation, it just leads to bugs
 				//if (lastBindTexture != curBindTexture)
-				
+
 				//lastBindTexture = curBindTexture;
 
 				b3Assert(glGetError() == GL_NO_ERROR);
@@ -2588,8 +2589,8 @@ void GLInstancingRenderer::renderSceneInternal(int orgRenderMode)
 								glUniform3f(useShadow_cameraPositionIn, camPos[0], camPos[1], camPos[2]);
 								glUniform1f(useShadow_materialShininessIn, gfxObj->m_materialShinyNess);
 								glUniform1f(useShadow_shadowmapIntensityIn, m_data->m_shadowmapIntensity);
-								
-								
+
+
 								glUniformMatrix4fv(useShadow_DepthBiasModelViewMatrix, 1, false, &depthBiasMVP[0][0]);
 								glActiveTexture(GL_TEXTURE1);
 								glBindTexture(GL_TEXTURE_2D, m_data->m_shadowTexture);

@@ -18,6 +18,8 @@ subject to the following restrictions:
 
 #include "b3Scalar.h"  // has definitions like B3_FORCE_INLINE
 #include "b3AlignedAllocator.h"
+#include <vector>
+#include <algorithm>
 
 ///If the platform doesn't support placement new, you can disable B3_USE_PLACEMENT_NEW
 ///then the b3AlignedObjectArray doesn't support objects with virtual methods, and non-trivial constructors/destructors
@@ -38,6 +40,23 @@ subject to the following restrictions:
 #include <new>  //for placement new
 #endif          //B3_USE_PLACEMENT_NEW
 
+#define b3AlignedObjectArray std::vector
+
+template<typename T>
+inline int LinearSearch(b3AlignedObjectArray<T>& array, const T& key)
+{
+	auto iterator = std::find(array.begin(), array.end(), key);
+	return std::distance(array.begin(), iterator);
+}
+
+template<typename T>
+inline int findBinarySearch(b3AlignedObjectArray<T>& array, const T& key) {
+	auto iterator = std::lower_bound(array.begin(),array.end(), key);
+	return std::distance(array.begin(), iterator);
+}
+
+
+/*
 ///The b3AlignedObjectArray template class uses a subset of the stl::vector interface for its methods
 ///It is developed to replace stl::vector to avoid portability issues, including STL alignment issues to add SIMD/SSE data
 template <typename T>
@@ -366,11 +385,11 @@ public:
 	template <typename L>
 	void downHeap(T* pArr, int k, int n, const L& CompareFunc)
 	{
-		/*  PRE: a[k+1..N] is a heap */
-		/* POST:  a[k..N]  is a heap */
+		//  PRE: a[k+1..N] is a heap
+		// POST:  a[k..N]  is a heap
 
 		T temp = pArr[k - 1];
-		/* k has child(s) */
+		//k has child(s)
 		while (k <= n / 2)
 		{
 			int child = 2 * k;
@@ -379,10 +398,10 @@ public:
 			{
 				child++;
 			}
-			/* pick larger child */
+			// pick larger child
 			if (CompareFunc(temp, pArr[child - 1]))
 			{
-				/* move child up */
+				// move child up
 				pArr[k - 1] = pArr[child - 1];
 				k = child;
 			}
@@ -392,7 +411,7 @@ public:
 			}
 		}
 		pArr[k - 1] = temp;
-	} /*downHeap*/
+	} // downHeap
 
 	void swap(int index0, int index1)
 	{
@@ -411,7 +430,7 @@ public:
 	template <typename L>
 	void heapSort(const L& CompareFunc)
 	{
-		/* sort a[0..N-1],  N.B. 0 to N-1 */
+		// sort a[0..N-1],  N.B. 0 to N-1
 		int k;
 		int n = m_size;
 		for (k = n / 2; k > 0; k--)
@@ -419,13 +438,13 @@ public:
 			downHeap(m_data, k, n, CompareFunc);
 		}
 
-		/* a[1..N] is now a heap */
+		// a[1..N] is now a heap
 		while (n >= 1)
 		{
-			swap(0, n - 1); /* largest of a[0..n-1] */
+			swap(0, n - 1); //largest of a[0..n-1]
 
 			n = n - 1;
-			/* restore a[1..i-1] heap */
+			// restore a[1..i-1] heap
 			downHeap(m_data, 1, n, CompareFunc);
 		}
 	}
@@ -518,5 +537,6 @@ public:
 		}
 	}
 };
+*/
 
 #endif  //B3_OBJECT_ARRAY__

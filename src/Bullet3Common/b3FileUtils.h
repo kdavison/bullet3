@@ -5,6 +5,7 @@
 #include "b3Scalar.h"
 #include <stddef.h>  //ptrdiff_h
 #include <string.h>
+#include <cctype>
 
 struct b3FileUtils
 {
@@ -98,20 +99,12 @@ struct b3FileUtils
 		return len;
 	}
 
-	static char toLowerChar(const char t)
-	{
-		if (t >= (char)'A' && t <= (char)'Z')
-			return t + ((char)'a' - (char)'A');
-		else
-			return t;
-	}
-
 	static void toLower(char* str)
 	{
 		int len = strlen(str);
 		for (int i = 0; i < len; i++)
 		{
-			str[i] = toLowerChar(str[i]);
+			str[i] = std::tolower(str[i]);
 		}
 	}
 

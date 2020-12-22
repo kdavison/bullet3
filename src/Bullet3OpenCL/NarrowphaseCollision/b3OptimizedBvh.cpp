@@ -4,8 +4,8 @@ Copyright (c) 2003-2009 Erwin Coumans  http://bulletphysics.org
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -37,7 +37,9 @@ void b3OptimizedBvh::build(b3StridingMeshInterface* triangles, bool useQuantized
 
 		NodeTriangleCallback& operator=(NodeTriangleCallback& other)
 		{
-			m_triangleNodes.copyFromArray(other.m_triangleNodes);
+			m_triangleNodes.resize(other.m_triangleNodes.size());
+			std::copy(other.m_triangleNodes.begin(), other.m_triangleNodes.end(), m_triangleNodes.begin());
+			//m_triangleNodes.copyFromArray(other.m_triangleNodes);
 			return *this;
 		}
 
@@ -78,7 +80,9 @@ void b3OptimizedBvh::build(b3StridingMeshInterface* triangles, bool useQuantized
 
 		QuantizedNodeTriangleCallback& operator=(QuantizedNodeTriangleCallback& other)
 		{
-			m_triangleNodes.copyFromArray(other.m_triangleNodes);
+			m_triangleNodes.resize(other.m_triangleNodes.size());
+			std::copy(other.m_triangleNodes.begin(), other.m_triangleNodes.end(), m_triangleNodes.begin());
+			//m_triangleNodes.copyFromArray(other.m_triangleNodes);
 			m_optimizedTree = other.m_optimizedTree;
 			return *this;
 		}
@@ -173,7 +177,7 @@ void b3OptimizedBvh::build(b3StridingMeshInterface* triangles, bool useQuantized
 	///if the entire tree is small then subtree size, we need to create a header info for the tree
 	if (m_useQuantization && !m_SubtreeHeaders.size())
 	{
-		b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.expand();
+		b3BvhSubtreeInfo& subtree = m_SubtreeHeaders.emplace_back();
 		subtree.setAabbFromQuantizeNode(m_quantizedContiguousNodes[0]);
 		subtree.m_rootNodeIndex = 0;
 		subtree.m_subtreeSize = m_quantizedContiguousNodes[0].isLeafNode() ? 1 : m_quantizedContiguousNodes[0].getEscapeIndex();

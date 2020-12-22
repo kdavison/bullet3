@@ -3,8 +3,8 @@ Copyright (c) 2003-2013 Gino van den Bergen / Erwin Coumans  http://bulletphysic
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -16,54 +16,24 @@ subject to the following restrictions:
 #define B3_GEN_MINMAX_H
 
 #include "b3Scalar.h"
+#include <algorithm>
 
-template <class T>
-B3_FORCE_INLINE const T& b3Min(const T& a, const T& b)
-{
-	return a < b ? a : b;
-}
+//template <class T>
+//B3_FORCE_INLINE const T& b3Min(const T& a, const T& b)
+//{
+//	return std::min(a,b);
+//}
 
-template <class T>
-B3_FORCE_INLINE const T& b3Max(const T& a, const T& b)
-{
-	return a > b ? a : b;
-}
+#define b3Min std::min
 
-template <class T>
-B3_FORCE_INLINE const T& b3Clamped(const T& a, const T& lb, const T& ub)
-{
-	return a < lb ? lb : (ub < a ? ub : a);
-}
+#define b3Max std::max
 
-template <class T>
-B3_FORCE_INLINE void b3SetMin(T& a, const T& b)
-{
-	if (b < a)
-	{
-		a = b;
-	}
-}
+#define b3Clamped std::clamp
 
-template <class T>
-B3_FORCE_INLINE void b3SetMax(T& a, const T& b)
-{
-	if (a < b)
-	{
-		a = b;
-	}
-}
+#define b3SetMin(a,b) a = std::min(a,b)
 
-template <class T>
-B3_FORCE_INLINE void b3Clamp(T& a, const T& lb, const T& ub)
-{
-	if (a < lb)
-	{
-		a = lb;
-	}
-	else if (ub < a)
-	{
-		a = ub;
-	}
-}
+#define b3SetMax(a,b) a = std::max(a,b)
+
+#define b3Clamp(a,lb,ub) a = std::clamp(a,lb,ub)
 
 #endif  //B3_GEN_MINMAX_H

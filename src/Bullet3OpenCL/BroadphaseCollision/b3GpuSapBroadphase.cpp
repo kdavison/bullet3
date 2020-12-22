@@ -11,21 +11,23 @@ bool searchIncremental3dSapOnGpu = true;
 
 #include "Bullet3Common/b3MinMax.h"
 
+#include <algorithm>
+
 #define B3_BROADPHASE_SAP_PATH "src/Bullet3OpenCL/BroadphaseCollision/kernels/sap.cl"
 
 /*
-	
- 
-	
-	
-	
- 
+
+
+
+
+
+
 	b3OpenCLArray<int> m_pairCount;
- 
- 
+
+
 	b3OpenCLArray<b3SapAabb>	m_allAabbsGPU;
 	b3AlignedObjectArray<b3SapAabb>	m_allAabbsCPU;
- 
+
 	virtual b3OpenCLArray<b3SapAabb>&	getAllAabbsGPU()
 	{
  return m_allAabbsGPU;
@@ -34,24 +36,24 @@ bool searchIncremental3dSapOnGpu = true;
 	{
  return m_allAabbsCPU;
 	}
- 
+
 	b3OpenCLArray<b3Vector3>	m_sum;
 	b3OpenCLArray<b3Vector3>	m_sum2;
 	b3OpenCLArray<b3Vector3>	m_dst;
- 
+
 	b3OpenCLArray<int>	m_smallAabbsMappingGPU;
 	b3AlignedObjectArray<int> m_smallAabbsMappingCPU;
- 
+
 	b3OpenCLArray<int>	m_largeAabbsMappingGPU;
 	b3AlignedObjectArray<int> m_largeAabbsMappingCPU;
- 
-	
+
+
 	b3OpenCLArray<b3Int4>		m_overlappingPairs;
- 
+
 	//temporary gpu work memory
 	b3OpenCLArray<b3SortData>	m_gpuSmallSortData;
 	b3OpenCLArray<b3SapAabb>	m_gpuSmallSortedAabbs;
- 
+
 	class b3PrefixScanFloat4CL*		m_prefixScanFloat4;
  */
 
@@ -318,7 +320,9 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 			b3Int4 newPair;
 			newPair.x = 40;
 			newPair.y = 53;
-			int index = allPairs.findBinarySearch(newPair);
+			//int index = allPairs.findBinarySearch(newPair);
+			auto iterator = std::find(allPairs.begin(), allPairs.end(), newPair);
+			int index = std::distance(allPairs.begin(), iterator);
 			printf("hasPair(40,53)=%d out of %d\n", index, allPairs.size());
 
 			{
@@ -428,7 +432,7 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 
 #if 0
 	if (0)
-	{	
+	{
 		printf("==========================\n");
 		for (int axis=0;axis<3;axis++)
 		{
@@ -486,7 +490,7 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 			m_sortedAxisGPU1prev.copyFromHost(m_sortedAxisCPU[1][1-m_currentBuffer]);
 			m_sortedAxisGPU2prev.copyFromHost(m_sortedAxisCPU[2][1-m_currentBuffer]);
 
-		
+
 			m_addedHostPairsGPU.resize(maxCapacity);
 			m_removedHostPairsGPU.resize(maxCapacity);
 
@@ -513,7 +517,7 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 			launcher.setBuffer(m_sortedAxisGPU1prev.getBufferCL());
 			launcher.setBuffer(m_sortedAxisGPU2prev.getBufferCL());
 
-		
+
 			launcher.setBuffer(m_addedHostPairsGPU.getBufferCL());
 			launcher.setBuffer(m_removedHostPairsGPU.getBufferCL());
 			launcher.setBuffer(m_addedCountGPU.getBufferCL());
@@ -540,7 +544,7 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 
 
 
-	} 
+	}
 	else
 	*/
 	{
@@ -746,15 +750,18 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 	{
 		{
 			B3_PROFILE("sort allPairs");
-			allPairs.quickSort(b3PairCmp);
+			//allPairs.quickSort(b3PairCmp);
+			std::sort(allPairs.begin(), allPairs.end(), b3PairCmp);
 		}
 		{
 			B3_PROFILE("sort addedHostPairs");
-			addedHostPairs.quickSort(b3PairCmp);
+			//addedHostPairs.quickSort(b3PairCmp);
+			std::sort(addedHostPairs.begin(), addedHostPairs.end(), b3PairCmp);
 		}
 		{
 			B3_PROFILE("sort removedHostPairs");
-			removedHostPairs.quickSort(b3PairCmp);
+			//removedHostPairs.quickSort(b3PairCmp);
+			std::sort(removedHostPairs.begin(), removedHostPairs.end(), b3PairCmp);
 		}
 	}
 
@@ -773,11 +780,11 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 			b3Int4 removedPair = removedHostPairs[i];
 			if ((removedPair.x != prevPair.x) || (removedPair.y != prevPair.y))
 			{
-				int index1 = allPairs.findBinarySearch(removedPair);
+				int index1 = findBinarySearch(allPairs, removedPair);
 
 				//#ifdef _DEBUG
 
-				int index2 = allPairs.findLinearSearch(removedPair);
+				int index2 = LinearSearch(allPairs, removedPair);
 				b3Assert(index1 == index2);
 
 				//b3Assert(index1!=allPairs.size());
@@ -801,7 +808,8 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 				allPairs[removedPositions[i]].x = INT_MAX;
 				allPairs[removedPositions[i]].y = INT_MAX;
 			}
-			allPairs.quickSort(b3PairCmp);
+			//allPairs.quickSort(b3PairCmp);
+			std::sort(allPairs.begin(), allPairs.end(), b3PairCmp);
 			allPairs.resize(allPairs.size() - uniqueRemovedPairs);
 		}
 	}
@@ -823,9 +831,9 @@ void b3GpuSapBroadphase::calculateOverlappingPairsHostIncremental3Sap()
 			if ((newPair.x != prevPair.x) || (newPair.y != prevPair.y))
 			{
 				//#ifdef _DEBUG
-				int index1 = allPairs.findBinarySearch(newPair);
+				int index1 = findBinarySearch(allPairs, newPair);
 
-				int index2 = allPairs.findLinearSearch(newPair);
+				int index2 = LinearSearch(allPairs, newPair);
 				b3Assert(index1 == index2);
 
 				b3Assert(index1 == allPairs.size());
@@ -1142,7 +1150,7 @@ void b3GpuSapBroadphase::calculateOverlappingPairs(int maxPairs)
 			launcher.setConst(maxPairs);
 
 			int num = numSmallAabbs;
-#if 0                
+#if 0
                 int buffSize = launcher.getSerializationBufferSize();
                 unsigned char* buf = new unsigned char[buffSize+sizeof(int)];
                 for (int i=0;i<buffSize+1;i++)
@@ -1151,15 +1159,15 @@ void b3GpuSapBroadphase::calculateOverlappingPairs(int maxPairs)
                     *ptr = 0xff;
                 }
                 int actualWrite = launcher.serializeArguments(buf,buffSize);
-                
+
                 unsigned char* cptr = (unsigned char*)&buf[buffSize];
     //            printf("buf[buffSize] = %d\n",*cptr);
-                
+
                 assert(buf[buffSize]==0xff);//check for buffer overrun
                 int* ptr = (int*)&buf[buffSize];
-                
+
                 *ptr = num;
-                
+
                 FILE* f = fopen("m_sapKernelArgs.bin","wb");
                 fwrite(buf,buffSize+sizeof(int),1,f);
                 fclose(f);

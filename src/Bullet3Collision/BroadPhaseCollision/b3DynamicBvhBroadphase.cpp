@@ -434,7 +434,8 @@ void b3DynamicBvhBroadphase::performDeferredRemoval(b3Dispatcher* dispatcher)
 		b3BroadphasePairArray& overlappingPairArray = m_paircache->getOverlappingPairArray();
 
 		//perform a sort, to find duplicates and to sort 'invalid' pairs to the end
-		overlappingPairArray.quickSort(b3BroadphasePairSortPredicate());
+		//overlappingPairArray.quickSort(b3BroadphasePairSortPredicate());
+		std::sort(overlappingPairArray.begin(), overlappingPairArray.end(), b3BroadphasePairSortPredicate());
 
 		int invalidPair = 0;
 
@@ -486,7 +487,8 @@ void b3DynamicBvhBroadphase::performDeferredRemoval(b3Dispatcher* dispatcher)
 		}
 
 		//perform a sort, to sort 'invalid' pairs to the end
-		overlappingPairArray.quickSort(b3BroadphasePairSortPredicate());
+		//overlappingPairArray.quickSort(b3BroadphasePairSortPredicate());
+		std::sort(overlappingPairArray.begin(), overlappingPairArray.end(), b3BroadphasePairSortPredicate());
 		overlappingPairArray.resize(overlappingPairArray.size() - invalidPair);
 	}
 }
@@ -566,7 +568,7 @@ void b3DynamicBvhBroadphase::collide(b3Dispatcher* dispatcher)
 		b3BroadphasePairArray& pairs = m_paircache->getOverlappingPairArray();
 		if (pairs.size() > 0)
 		{
-			int ni = b3Min(pairs.size(), b3Max<int>(m_newpairs, (pairs.size() * m_cupdates) / 100));
+			int ni = b3Min<int>(pairs.size(), b3Max<int>(m_newpairs, (pairs.size() * m_cupdates) / 100));
 			for (int i = 0; i < ni; ++i)
 			{
 				b3BroadphasePair& p = pairs[(m_cid + i) % pairs.size()];

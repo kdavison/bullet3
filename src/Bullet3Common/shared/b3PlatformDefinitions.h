@@ -1,11 +1,6 @@
 #ifndef B3_PLATFORM_DEFINITIONS_H
 #define B3_PLATFORM_DEFINITIONS_H
 
-struct MyTest
-{
-	int bla;
-};
-
 #ifdef __cplusplus
 //#define b3ConstArray(a) const b3AlignedObjectArray<a>&
 #define b3ConstArray(a) const a *

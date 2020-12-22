@@ -17,6 +17,7 @@ subject to the following restrictions:
 #define B3_INT2_H
 
 #ifdef __cplusplus
+#include <stdint.h>
 
 struct b3UnsignedInt2
 {

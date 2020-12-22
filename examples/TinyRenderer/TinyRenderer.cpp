@@ -492,10 +492,7 @@ static bool clipTriangleAgainstNearplane(const mat<4, 3, float>& triangleIn, b3A
 		return false;
 	}
 
-	Vec4f vtxCache[5];
-
-	b3AlignedObjectArray<Vec4f> vertices;
-	vertices.initializeFromBuffer(vtxCache, 0, 5);
+	b3AlignedObjectArray<Vec4f> vertices(5);
 	clipEdge(triangleIn, 0, 1, vertices);
 	clipEdge(triangleIn, 1, 2, vertices);
 	clipEdge(triangleIn, 2, 0, vertices);
@@ -511,7 +508,7 @@ static bool clipTriangleAgainstNearplane(const mat<4, 3, float>& triangleIn, b3A
 	//create a fan of triangles
 	for (int i = 1; i < vertices.size() - 1; i++)
 	{
-		mat<4, 3, float>& vtx = clippedTrianglesOut.expand();
+		mat<4, 3, float>& vtx = clippedTrianglesOut.emplace_back();
 		vtx.set_col(0, vertices[0]);
 		vtx.set_col(1, vertices[i]);
 		vtx.set_col(2, vertices[i + 1]);
@@ -575,10 +572,7 @@ void TinyRenderer::renderObject(TinyRenderObjectData& renderData)
 						continue;
 				}
 
-				mat<4, 3, float> stackTris[3];
-
-				b3AlignedObjectArray<mat<4, 3, float> > clippedTriangles;
-				clippedTriangles.initializeFromBuffer(stackTris, 0, 3);
+				b3AlignedObjectArray<mat<4, 3, float> > clippedTriangles(3);
 
 				bool hasClipped = clipTriangleAgainstNearplane(shader.varying_tri, clippedTriangles);
 
@@ -631,10 +625,7 @@ void TinyRenderer::renderObjectDepth(TinyRenderObjectData& renderData)
 				shader.vertex(i, j);
 			}
 
-			mat<4, 3, float> stackTris[3];
-
-			b3AlignedObjectArray<mat<4, 3, float> > clippedTriangles;
-			clippedTriangles.initializeFromBuffer(stackTris, 0, 3);
+			b3AlignedObjectArray<mat<4, 3, float> > clippedTriangles(3);
 
 			bool hasClipped = clipTriangleAgainstNearplane(shader.varying_tri, clippedTriangles);
 
